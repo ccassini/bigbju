@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sheep Sorter Monad</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- Farcaster Frame Meta Tags -->
+  <meta property="fc:frame" content="vNext" />
+  <meta property="fc:frame:image" content="./assets/Logo_horse.png" />
+  <meta property="fc:frame:button:1" content="🎮 Play Game" />
+  <meta property="fc:frame:button:1:action" content="link" />
+  <meta property="fc:frame:button:1:target" content="https://your-domain.com" />
+  
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:title" content="Sheep Sorter Monad - Blockchain Game" />
+  <meta property="og:description" content="A fun blockchain game where you catch sheep and horses while avoiding purple creatures on Monad network" />
+  <meta property="og:image" content="./assets/Logo_horse.png" />
+  <meta property="og:url" content="https://your-domain.com" />
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="./.well-known/farcaster.json" />
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+ /* Ігрове лого */
+#gameLogo {
+  position: absolute;
+  bottom: 180px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  z-index: 10;
+}
+
+    /* Кнопка Рестарту */
+    #restartBtn {
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 24px;
+      padding: 10px 20px;
+      display: none;
+      z-index: 10;
+    }
+
+    /* Поле вводу імені */
+    #playerName {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 20px;
+      padding: 10px;
+      z-index: 10;
+      display: none;
+    }
+
+    /* Інструкція */
+    #instructions {
+      position: absolute;
+      top: 20px;
+      width: 100%;
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      color: #333;
+      z-index: 10;
+    }
+
+    /* Кнопка підключення гаманця */
+    #connectWalletBtn {
+      position: absolute;
+      bottom: 120px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 24px;
+      padding: 12px 24px;
+      background: linear-gradient(45deg, #6B46C1, #9333EA);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 4px 15px rgba(107, 70, 193, 0.4);
+      transition: all 0.3s ease;
+      z-index: 10;
+    }
+
+    #connectWalletBtn:hover {
+      background: linear-gradient(45deg, #553C9A, #7C3AED);
+      transform: translate(-50%, -2px);
+      box-shadow: 0 6px 20px rgba(107, 70, 193, 0.6);
+    }
+
+    #connectWalletBtn:disabled {
+      background: #10B981;
+      cursor: default;
+      transform: translateX(-50%);
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    }
+
+    /* Кнопка старту гри */
+    #startGameBtn {
+      position: absolute;
+      bottom: 120px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 24px;
+      padding: 12px 24px;
+      background: linear-gradient(45deg, #10B981, #059669);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+      transition: all 0.3s ease;
+      z-index: 10;
+      display: none;
+    }
+
+    #startGameBtn:hover {
+      background: linear-gradient(45deg, #059669, #047857);
+      transform: translate(-50%, -2px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+    }
+
+    /* Підпис унизу */
+    #footer {
+      position: absolute;
+      bottom: 5px;
+      right: 10px;
+      font-size: 12px;
+      color: #666;
+      z-index: 5;
+      font-family: sans-serif;
+    }
+
+    /* Адаптація */
+@media (max-width: 600px) {
+  #restartBtn, #playerName, #startGameBtn {
+    font-size: 18px;
+    padding: 8px 16px;
+  }
+  #instructions {
+    font-size: 16px;
+    top: 40px; /* Було 10px */
+  }
+}
+  </style>
+</head>
+<body>
+
+  <!-- Інструкція -->
+  <div id="instructions">
+    we catch sheep 🐑 horses 🐎<br />
+    we don't touch purple ones🟪
+  </div>
+
+  <!-- Кнопка Рестарту -->
+  <button id="restartBtn">Restart</button>
+
+  <!-- Поле вводу імені -->
+  <input id="playerName" type="text" placeholder="Your name" />
+
+  <!-- Кнопка підключення гаманця -->
+  <button id="connectWalletBtn">🔌 Connect Wallet</button>
+
+  <!-- Лого гри -->
+<img id="gameLogo" src="./assets/Logo_horse.png" alt="Logo Horse" />
+
+  <!-- Кнопка старту гри -->
+  <button id="startGameBtn">▶️ Start Game</button>
+
+  <!-- Підпис -->
+  <div id="footer">game created by Big or Bigbju for Monad community</div>
+
+  <!-- Підключення скрипта -->
+  <script type="module" src="/src/main.js"></script>
+
+  
+</body>
+</html>
