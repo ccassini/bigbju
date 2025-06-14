@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Sheep Sorter Monad</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   
   <!-- Farcaster Frame Meta Tags -->
   <meta property="fc:frame" content="vNext" />
@@ -21,6 +21,27 @@
   <!-- PWA Manifest -->
   <link rel="manifest" href="./.well-known/farcaster.json" />
   <style>
+    * {
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      position: fixed;
+      background: #000;
+      touch-action: manipulation;
+    }
+
     body {
       margin: 0;
       overflow: hidden;
@@ -43,9 +64,18 @@
       left: 50%;
       transform: translateX(-50%);
       font-size: 24px;
-      padding: 10px 20px;
+      padding: 15px 25px;
       display: none;
       z-index: 10;
+      min-height: 44px;
+      min-width: 120px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(45deg, #EF4444, #DC2626);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      touch-action: manipulation;
     }
 
     /* Поле вводу імені */
@@ -55,9 +85,12 @@
       left: 50%;
       transform: translateX(-50%);
       font-size: 20px;
-      padding: 10px;
+      padding: 15px;
       z-index: 10;
       display: none;
+      min-height: 44px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
     }
 
     /* Інструкція */
@@ -70,6 +103,8 @@
       font-weight: bold;
       color: #333;
       z-index: 10;
+      padding: 0 10px;
+      box-sizing: border-box;
     }
 
     /* Кнопка підключення гаманця */
@@ -79,7 +114,7 @@
       left: 50%;
       transform: translateX(-50%);
       font-size: 24px;
-      padding: 12px 24px;
+      padding: 15px 30px;
       background: linear-gradient(45deg, #6B46C1, #9333EA);
       color: white;
       border: none;
@@ -89,12 +124,19 @@
       box-shadow: 0 4px 15px rgba(107, 70, 193, 0.4);
       transition: all 0.3s ease;
       z-index: 10;
+      min-height: 54px;
+      min-width: 200px;
+      touch-action: manipulation;
     }
 
     #connectWalletBtn:hover {
       background: linear-gradient(45deg, #553C9A, #7C3AED);
       transform: translate(-50%, -2px);
       box-shadow: 0 6px 20px rgba(107, 70, 193, 0.6);
+    }
+
+    #connectWalletBtn:active {
+      transform: translate(-50%, 0px);
     }
 
     #connectWalletBtn:disabled {
@@ -111,7 +153,7 @@
       left: 50%;
       transform: translateX(-50%);
       font-size: 24px;
-      padding: 12px 24px;
+      padding: 15px 30px;
       background: linear-gradient(45deg, #10B981, #059669);
       color: white;
       border: none;
@@ -122,12 +164,19 @@
       transition: all 0.3s ease;
       z-index: 10;
       display: none;
+      min-height: 54px;
+      min-width: 200px;
+      touch-action: manipulation;
     }
 
     #startGameBtn:hover {
       background: linear-gradient(45deg, #059669, #047857);
       transform: translate(-50%, -2px);
       box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+    }
+
+    #startGameBtn:active {
+      transform: translate(-50%, 0px);
     }
 
     /* Підпис унизу */
@@ -141,17 +190,109 @@
       font-family: sans-serif;
     }
 
-    /* Адаптація */
-@media (max-width: 600px) {
-  #restartBtn, #playerName, #startGameBtn {
-    font-size: 18px;
-    padding: 8px 16px;
-  }
-  #instructions {
-    font-size: 16px;
-    top: 40px; /* Було 10px */
-  }
-}
+    /* Canvas styling */
+    canvas {
+      display: block;
+      background: #000;
+      touch-action: none;
+    }
+
+    /* Pause button styling */
+    button[style*="position:absolute; top:10px; right:10px"] {
+      min-height: 44px;
+      min-width: 80px;
+      padding: 10px 15px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(45deg, #F59E0B, #D97706);
+      color: white;
+      font-weight: bold;
+      touch-action: manipulation;
+    }
+
+    /* Адаптація для мобільних пристроїв */
+    @media (max-width: 768px) {
+      #restartBtn, #playerName, #startGameBtn, #connectWalletBtn {
+        font-size: 20px;
+        padding: 18px 25px;
+        min-height: 60px;
+      }
+      
+      #connectWalletBtn, #startGameBtn {
+        min-width: 250px;
+        bottom: 100px;
+      }
+      
+      #instructions {
+        font-size: 18px;
+        top: 30px;
+        padding: 0 20px;
+      }
+      
+      #gameLogo {
+        width: 100px;
+        bottom: 200px;
+      }
+      
+      #footer {
+        font-size: 10px;
+        bottom: 10px;
+        right: 5px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      #restartBtn, #playerName, #startGameBtn, #connectWalletBtn {
+        font-size: 18px;
+        padding: 20px 30px;
+        min-height: 64px;
+      }
+      
+      #connectWalletBtn, #startGameBtn {
+        min-width: 280px;
+        bottom: 80px;
+      }
+      
+      #instructions {
+        font-size: 16px;
+        top: 40px;
+        padding: 0 15px;
+        line-height: 1.4;
+      }
+      
+      #gameLogo {
+        width: 80px;
+        bottom: 220px;
+      }
+    }
+
+    /* Landscape orientation adjustments */
+    @media (orientation: landscape) and (max-height: 500px) {
+      #instructions {
+        top: 10px;
+        font-size: 14px;
+      }
+      
+      #connectWalletBtn, #startGameBtn {
+        bottom: 60px;
+        font-size: 16px;
+        padding: 12px 20px;
+        min-height: 48px;
+      }
+      
+      #gameLogo {
+        width: 60px;
+        bottom: 140px;
+      }
+      
+      #restartBtn {
+        bottom: 40px;
+        font-size: 16px;
+        padding: 12px 20px;
+        min-height: 48px;
+      }
+    }
   </style>
 </head>
 <body>

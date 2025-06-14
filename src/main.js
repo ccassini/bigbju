@@ -73,9 +73,9 @@ if (!currentPlayer) {
 
 
     // Малюємо фон лідерборду
-    ctx.fillStyle = "rgba(255,255,255,0.9)";
+    ctx.fillStyle = "rgba(0,0,0,0.8)";
     ctx.fillRect(200, 150, 400, 250);
-    ctx.fillStyle = "purple";
+    ctx.fillStyle = "white";
     ctx.font = "20px Arial";
     ctx.fillText("🏆 Top 5 Leaderboard", 280, 180);
 
@@ -83,14 +83,14 @@ if (!currentPlayer) {
     sorted.forEach((entry, i) => {
       const isUser = entry.player === userAddress;
       const label = isUser ? "You" : `${entry.player.slice(0, 6)}...${entry.player.slice(-4)}`;
-      ctx.fillStyle = isUser ? "green" : "black";
+      ctx.fillStyle = isUser ? "#00ff00" : "white";
       ctx.fillText(`${i + 1}. ${label}: ${entry.score}`, 220, 210 + i * 30);
     });
 
     // Якщо користувач НЕ в топ 5, але є в лідерборді — виводимо окремо
 const isUserInTop = sorted.some(e => e.player === userAddress);
 if (!isUserInTop && currentPlayer) {
-  ctx.fillStyle = "blue";
+  ctx.fillStyle = "#00ff00";
   const shortAddr = `${currentPlayer.player.slice(0, 6)}...${currentPlayer.player.slice(-4)}`;
   ctx.fillText(`You: ${shortAddr}: ${Number(currentPlayer.score)}`, 220, 210 + sorted.length * 30 + 20);
 }
@@ -177,6 +177,20 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 
   startGameBtn.addEventListener("click", () => {
+    // Enable audio context for mobile devices
+    try {
+      Object.values(sounds).forEach(sound => {
+        sound.play().then(() => {
+          sound.pause();
+          sound.currentTime = 0;
+        }).catch(() => {
+          // Audio play failed, but that's okay for initialization
+        });
+      });
+    } catch (error) {
+      console.log("Audio initialization failed:", error);
+    }
+    
     gameStarted = true;
     startGameBtn.style.display = "none";
     document.getElementById("gameLogo").style.display = "none";
@@ -187,14 +201,53 @@ window.addEventListener("DOMContentLoaded", () => {
   const GAME_HEIGHT = 600;
 
   function resizeCanvas() {
-    const scale = Math.min(window.innerWidth / GAME_WIDTH, window.innerHeight / GAME_HEIGHT);
+    // Get actual viewport dimensions
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    // Calculate scale to fit the game within viewport
+    const scaleX = viewportWidth / GAME_WIDTH;
+    const scaleY = viewportHeight / GAME_HEIGHT;
+    const scale = Math.min(scaleX, scaleY);
+    
+    // Set canvas size
     canvas.width = GAME_WIDTH * scale;
     canvas.height = GAME_HEIGHT * scale;
+    
+    // Center the canvas
+    canvas.style.position = 'absolute';
+    canvas.style.left = '50%';
+    canvas.style.top = '50%';
+    canvas.style.transform = 'translate(-50%, -50%)';
+    canvas.style.maxWidth = '100vw';
+    canvas.style.maxHeight = '100vh';
+    
+    // Set the drawing context scale
     ctx.setTransform(scale, 0, 0, scale, 0, 0);
   }
 
   window.addEventListener("resize", resizeCanvas);
+  window.addEventListener("orientationchange", () => {
+    setTimeout(resizeCanvas, 100); // Delay to ensure proper orientation change
+  });
   resizeCanvas();
+
+  // Prevent scrolling and zooming on mobile
+  document.addEventListener('touchmove', function(e) {
+    e.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener('gesturestart', function(e) {
+    e.preventDefault();
+  });
+
+  document.addEventListener('gesturechange', function(e) {
+    e.preventDefault();
+  });
+
+  document.addEventListener('gestureend', function(e) {
+    e.preventDefault();
+  });
 
   const logo = new Image(); logo.src = "/assets/monad-logo.png";
   const gate = new Image(); gate.src = "/assets/gate.png";
@@ -212,12 +265,39 @@ window.addEventListener("DOMContentLoaded", () => {
   ];
   const goodTypes = ["sheep-small", "sheep-big", "horse"];
 
+  // Initialize sounds with mobile compatibility
   const sounds = {
     correct: new Audio("/assets/correct.mp3"),
     wrong: new Audio("/assets/wrong.mp3"),
     click: new Audio("/assets/click.mp3"),
     levelup: new Audio("/assets/level-up.mp3"),
   };
+
+  // Configure sounds for mobile
+  Object.values(sounds).forEach(sound => {
+    sound.preload = 'auto';
+    sound.volume = 0.5; // Lower volume for mobile
+    // Enable playback on mobile devices
+    sound.load();
+  });
+
+  // Function to safely play sounds
+  function playSound(soundName) {
+    try {
+      const sound = sounds[soundName];
+      if (sound) {
+        sound.currentTime = 0; // Reset to beginning
+        const playPromise = sound.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            console.log("Sound play failed:", error);
+          });
+        }
+      }
+    } catch (error) {
+      console.log("Sound error:", error);
+    }
+  }
 
   let score = 0, level = 1, lives = 3, horseCollected = 0;
   let sheepList = [], explosionEffects = [], goodExplosionEffects = [];
@@ -254,21 +334,62 @@ let speed = baseSpeed * levelBonus;
     if (gameStarted && lives > 0 && !paused) spawnSheep();
   }, Math.max(300, 2000 - level * 200));
 
-  canvas.addEventListener("click", e => {
+  // Handle both click and touch events
+  function handleInteraction(e) {
     if (!gameStarted || lives <= 0 || paused) return;
+    
+    // Only prevent default for touch events, not mouse events
+    if (e.type.startsWith('touch')) {
+      e.preventDefault();
+    }
+    
     const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / GAME_WIDTH;
-    const x = (e.clientX - rect.left) / scaleX;
-    const y = (e.clientY - rect.top) / scaleX;
+    
+    let clientX, clientY;
+    
+    // Handle both mouse and touch events
+    if (e.type === 'touchstart') {
+      if (e.touches && e.touches.length > 0) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+      } else {
+        return;
+      }
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+    
+    // Calculate the correct scale - use the same scale as in resizeCanvas
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const scaleX = viewportWidth / GAME_WIDTH;
+    const scaleY = viewportHeight / GAME_HEIGHT;
+    const scale = Math.min(scaleX, scaleY);
+    
+    // Convert screen coordinates to game coordinates
+    const x = (clientX - rect.left) / scale;
+    const y = (clientY - rect.top) / scale;
+    
+    console.log(`Click at: ${clientX}, ${clientY} -> Game coords: ${x}, ${y}, Scale: ${scale}`); // Debug log
+    
     let hit = false;
     sheepList.forEach((s, i) => {
       if (!hit && x >= s.x && x <= s.x + 80 && y >= s.y && y <= s.y + 80) {
         hit = true;
         processClick(s, i);
+        console.log(`Hit sheep at: ${s.x}, ${s.y}`); // Debug log
       }
     });
-    if (!hit) sounds.click.play();
-  });
+    if (!hit) {
+      console.log('No hit detected'); // Debug log
+      playSound('click');
+    }
+  }
+
+  // Add event listeners for both mouse and touch
+  canvas.addEventListener("click", handleInteraction);
+  canvas.addEventListener("touchstart", handleInteraction, { passive: false });
 
   function processClick(s, idx) {
     if (goodTypes.includes(s.type)) {
@@ -282,14 +403,14 @@ let speed = baseSpeed * levelBonus;
         clearTimeout(slowMotionTimeout);
         slowMotionTimeout = setTimeout(() => slowMotion = false, 5000);
       }
-      sounds.correct.play();
-      if (score % 5 === 0) sounds.levelup.play();
+      playSound('correct');
+      if (score % 5 === 0) playSound('levelup');
       goodExplosionEffects.push({ x: s.x + 40, y: s.y + 40, radius: 10, alpha: 1, growthRate: 2 });
-    } else {
-      lives--;
-      sounds.wrong.play();
-      explosionEffects.push({ x: s.x + 40, y: s.y + 40, radius: 10, alpha: 1, growthRate: 2 });
-    }
+          } else {
+        lives--;
+        playSound('wrong');
+        explosionEffects.push({ x: s.x + 40, y: s.y + 40, radius: 10, alpha: 1, growthRate: 2 });
+      }
     sheepList.splice(idx, 1);
   }
 
@@ -319,21 +440,22 @@ let speed = baseSpeed * levelBonus;
       ctx.drawImage(s.img, s.x, s.y, 80, 80);
       if (s.y > gateY + 80) {
         if (goodTypes.includes(s.type)) {
-          lives--; sounds.wrong.play();
+          lives--; 
+          playSound('wrong');
         }
         sheepList.splice(i, 1);
       }
     });
     drawEffects(explosionEffects, "255,0,0");
     drawEffects(goodExplosionEffects, "0,255,0");
-    ctx.fillStyle = "black"; ctx.font = "20px Arial";
+    ctx.fillStyle = "white"; ctx.font = "20px Arial";
     ctx.fillText(`Level: ${level}`, 100, 30);
     ctx.fillText(`Lives: ${lives}`, 100, 60);
     ctx.fillText(`Score: ${score}`, 100, 90);
     ctx.drawImage(logo, 10, 10, 60, 60);
 
     if (lives <= 0) {
-      ctx.fillStyle = "red"; ctx.font = "40px Arial";
+      ctx.fillStyle = "white"; ctx.font = "40px Arial";
       ctx.fillText("GAME OVER", 250, 200);
       submitScoreToBlockchain(score);
       fetchLeaderboardFromBlockchain(ctx, score);
